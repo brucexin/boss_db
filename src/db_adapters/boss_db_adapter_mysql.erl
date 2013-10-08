@@ -2,7 +2,7 @@
 -behaviour(boss_db_adapter).
 -export([init/1, terminate/1, start/1, stop/0, find/2, find/7]).
 -export([count/3, counter/2, incr/3, delete/2, save_record/2]).
--export([push/2, pop/2, dump/1, execute/2, transaction/2]).
+-export([push/2, pop/2, dump/1, execute/2, execute_with_type/3, transaction/2]).
 -export([get_migrations_table/1, migration_done/3]).
 
 start(_) ->
@@ -166,6 +166,24 @@ dump(_Conn) -> "".
 
 execute(Pid, Commands) ->
     fetch(Pid, Commands).
+
+execute_with_type(Pid, ResultType, Commands) ->
+    case boss_record_lib:ensure_loaded(ResultType) of
+        true ->
+            Res = fetch(Pid, Commands),
+
+            case Res of
+                {data, MysqlRes} ->
+                    Columns = mysql:get_result_field_info(MysqlRes),
+                    ResultRows = mysql:get_result_rows(MysqlRes),
+                    lists:map(fun(Row) ->
+                                activate_record(Row, Columns, ResultType)
+                        end, ResultRows);
+                {error, MysqlRes} ->
+                    {error, mysql:get_result_reason(MysqlRes)}
+            end;
+        false -> {error, {module_not_loaded, ResultType}}
+    end.
 
 transaction(Pid, TransactionFun) when is_function(TransactionFun) ->
     do_transaction(Pid, TransactionFun).

@@ -220,6 +220,11 @@ handle_call({execute, Commands, Params}, _From, State) ->
     Conn = State#state.write_connection,
     {reply, Adapter:execute(Conn, Commands, Params), State};
 
+handle_call({execute_with_type, ResultType, Commands}, _From, State) ->
+    Adapter = State#state.adapter,
+    Conn = State#state.write_connection,
+    {reply, Adapter:execute_with_type(Conn, ResultType, Commands), State};
+
 handle_call({transaction, TransactionFun}, _From, State) ->
     Adapter = State#state.adapter,
     Conn = State#state.write_connection,

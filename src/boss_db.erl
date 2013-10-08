@@ -31,6 +31,7 @@
         dump/0,
         execute/1,
         execute/2,
+        execute_with_type/2,
         transaction/1,
         validate_record/1,
         validate_record/2,
@@ -243,6 +244,9 @@ table_exists(TableName) ->
 %% @doc Execute raw database commands on SQL databases
 execute(Commands) ->
     db_call({execute, Commands}).
+
+execute_with_type(ResultType, Commands) ->
+    db_call({execute_with_type, ResultType, Commands}).
 
 %% @spec execute( Commands::iolist(), Params::list() ) -> RetVal
 %% @doc Execute database commands with interpolated parameters on SQL databases
